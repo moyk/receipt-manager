@@ -4,6 +4,7 @@
 package generated;
 
 
+import generated.tables.ReceiptTags;
 import generated.tables.Receipts;
 
 import javax.annotation.Generated;
@@ -26,4 +27,9 @@ public class Tables {
 	 * The table public.receipts
 	 */
 	public static final Receipts RECEIPTS = generated.tables.Receipts.RECEIPTS;
+
+	/**
+	 * The table public.receipt_tags
+	 */
+	public static final ReceiptTags RECEIPT_TAGS = generated.tables.ReceiptTags.RECEIPT_TAGS;
 }
