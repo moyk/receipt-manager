@@ -5,6 +5,7 @@ import api.ReceiptResponse;
 import api.ReceiptTagResponse;
 import dao.tagsDao;
 import generated.tables.records.ReceiptTagsRecord;
+import generated.tables.records.ReceiptsRecord;
 
 import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
@@ -31,9 +32,9 @@ public class tagsController {
     }
 
     @GET
-    public List<ReceiptTagResponse> getTags(@PathParam("tag") String tagName) {
-        List<ReceiptTagsRecord> receiptTagsRecord = tags.getAllReceiptsByTags(tagName);
-        return receiptTagsRecord.stream().map(ReceiptTagResponse::new).collect(toList());
+    public List<ReceiptResponse> getTags(@PathParam("tag") String tagName) {
+        List<ReceiptsRecord> receiptsRecord = tags.getAllReceiptsByTags(tagName);
+        return receiptsRecord.stream().map(ReceiptResponse::new).collect(toList());
 
     }
 }

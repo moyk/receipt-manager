@@ -1,7 +1,9 @@
 package dao;
 
 import api.ReceiptResponse;
+import generated.tables.Receipts;
 import generated.tables.records.ReceiptTagsRecord;
+import generated.tables.records.ReceiptsRecord;
 import org.jooq.Configuration;
 import org.jooq.DSLContext;
 import org.jooq.impl.DSL;
@@ -10,6 +12,7 @@ import java.math.BigDecimal;
 import java.util.List;
 
 import static com.google.common.base.Preconditions.checkState;
+import static generated.Tables.RECEIPTS;
 import static generated.Tables.RECEIPT_TAGS;
 
 public class tagsDao {
@@ -43,9 +46,12 @@ public class tagsDao {
 
     }
 
-    public List<ReceiptTagsRecord> getAllReceiptsByTags(String tagName) {
-        return dsl.selectFrom(RECEIPT_TAGS)
-                .where(RECEIPT_TAGS.TAGNAME.eq(tagName))
+    public List<ReceiptsRecord> getAllReceiptsByTags(String tagName) {
+        return dsl.selectFrom(RECEIPTS)
+                .where(RECEIPTS.ID.eq(dsl
+                        .select(RECEIPT_TAGS.RECEIPT_ID)
+                        .from(RECEIPT_TAGS)
+                        .where(RECEIPT_TAGS.TAGNAME.eq(tagName))))
                 .fetch();
     }
 
