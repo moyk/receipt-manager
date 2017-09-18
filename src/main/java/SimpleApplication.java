@@ -1,4 +1,4 @@
-mport controllers.ReceiptController;
+import controllers.ReceiptController;
 import controllers.StaticHtmlController;
 import dao.ReceiptDao;
 import io.dropwizard.Application;
