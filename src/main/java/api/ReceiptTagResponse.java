@@ -8,13 +8,13 @@ public class ReceiptTagResponse {
     Integer id;
 
     @JsonProperty
-    String tagName;
+    String tagname;
 
     @JsonProperty
     Integer receipt_id;
 
     public ReceiptTagResponse(ReceiptTagsRecord dbRecord) {
-        this.tagName = dbRecord.getTagname();
+        this.tagname = dbRecord.getTagname();
         this.id = dbRecord.getId();
         this.receipt_id =dbRecord.getReceiptId();
     }

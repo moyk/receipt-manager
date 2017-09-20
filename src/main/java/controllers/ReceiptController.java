@@ -3,6 +3,7 @@ package controllers;
 import api.CreateReceiptRequest;
 import api.ReceiptResponse;
 import dao.ReceiptDao;
+import dao.tagsDao;
 import generated.tables.records.ReceiptsRecord;
 
 import javax.validation.Valid;
@@ -18,9 +19,12 @@ import static java.util.stream.Collectors.toList;
 @Produces(MediaType.APPLICATION_JSON)
 public class ReceiptController {
     final ReceiptDao receipts;
+    final tagsDao tags;
 
-    public ReceiptController(ReceiptDao receipts) {
+    public ReceiptController(ReceiptDao receipts, tagsDao tags) {
+
         this.receipts = receipts;
+        this.tags = tags;
     }
 
     @POST
@@ -31,7 +35,11 @@ public class ReceiptController {
     @GET
     public List<ReceiptResponse> getReceipts() {
         List<ReceiptsRecord> receiptRecords = receipts.getAllReceipts();
-        return receiptRecords.stream().map(ReceiptResponse::new).collect(toList());
+        List<ReceiptResponse> response= receiptRecords.stream().map(ReceiptResponse::new).collect(toList());
+        for (ReceiptResponse each : response) {
+            each.tags = tags.getTagsByReceipt(each.id);
+        }
+        return response;
     }
 
 

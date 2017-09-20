@@ -1,59 +1,223 @@
 <!DOCTYPE html>
-<html>
 
 <head>
-    <link rel="stylesheet" href="style.css" />
     <script data-require="jquery@*" data-semver="3.1.1" src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
-    <style>
-        #container {border: 1px solid brown;}
-        H1 {float: left;}
+    <script>
+        const api = "http://ec2-13-58-78-137.us-east-2.compute.amazonaws.com:8080";
+        const returnKey = 13
+        $(loadReceipts())
+        function loadReceipts() {
+            $.getJSON(api + "/receipts", function(receipts){
+                $("#receiptList").empty();
+                for(var i = receipts.length - 1; i >= 0; i--) {
+                    var receipt = receipts[i];
+                    $(`<div class="receipt">
+                            Time: <span class = "time">${receipt.created}</span><br>
+                            Name: <span class = "merchant">${receipt.merchantName}</span><br>
+                            Amount: <span class = "amount">${receipt.value}</span><br>
+                            Tags:
+                            <div class="tags" id = ${receipt.id}>
+                                <input type="button" class = "add-tag" name = ${receipt.id} value="Add +" onclick="addTag(this)">
+                            </div>
+                        </div>`
+                    ).appendTo($("#receiptList"));
+                    receipt.tags.forEach(function(tag) {
+                        var button = document.createElement('a');
+                        button.text = tag
+                        button.name = receipt.id
+                        button.className = "tagValue"
+                        button.addEventListener('click', function(){
+                            toggleTag(tag, this)
+                        });
+                        document.getElementById(receipt.id).appendChild(button)
+                    });
+                }
+            })
+        }
+        function addTag(input) {
+            var shouldExit = false
+            input.parentNode.childNodes.forEach(function(child){
+                if (child.type == "text") {
+                    child.parentNode.removeChild(child)
+                    shouldExit = true
+                    return
+                }
+            })
+            if (shouldExit) { return }
+            var text = document.createElement('input')
+            text.type = "text"
+            text.placeholder = "Add Tag"
+            text.name = input.name
+            text.className = "tag_input"
+            text.addEventListener('keypress', function(event){
+                if (event.keyCode == returnKey) {
+                    toggleTag(text.value, text)
+                }
+            });
+            document.getElementById(input.name).appendChild(text)
+        }
+        function toggleTag(tag, input) {
+            $.ajax({
+                url: api+"/tags/"+tag,
+                type: "PUT",
+                data: JSON.stringify(parseInt(input.name)),
+                contentType: "application/json; charset=utf-8",
+                dataType:    "json",
+                success: function(){
+                    loadReceipts();
+                },
+            });
+        }
+        function addReceipt() {
+            $.ajax({
+                url:         api+"/receipts",
+                type:        "POST",
+                data:        JSON.stringify({
+                    merchant: $("#merchant").val(),
+                    amount: Number($("#amount").val())
+                }),
+                contentType: "application/json; charset=utf-8",
+                dataType:    "json",
+                success: function(){
+                    loadReceipts();
+                },
+            });
+        }
+        function toggleAddReceiptDialogue() {
+            dialogue = document.getElementById("addReceiptDialogue").firstChild
+            if (dialogue == null) {
+                $(`<div><input type="text" id="merchant" placeholder="Merchant">
+                  <input onkeypress="return isNumberKey(event)" type="text" id="amount" placeholder="Amount">
+                  <input type="button" id="cancel-receipt" value="Cancel" onclick = "toggleAddReceiptDialogue()">
+                  <input type="button" id="save-receipt" value="Save" onclick = "addReceipt()"></div>`)
+                    .appendTo($("#addReceiptDialogue"))
+            } else {
+                dialogue.parentNode.removeChild(dialogue)
+            }
+        }
 
-        .button{
-            background-color:#55A;
-            border: 1px solid #229;
+        function isNumberKey(evt)
+        {
+            var charCode = (evt.which) ? evt.which : evt.keyCode;
+            if (charCode != 46 && charCode > 31
+                && (charCode < 48 || charCode > 57))
+                return false;
+
+            return true;
+        }
+    </script>
+</head>
+    <style type="text/css">
+        H1 {
+            float: left;
+        }
+        #add-receipt {
+            display: inline-block;
+            background-color: orange;
+            border: 1px solid black;
             width: 100px;
-            float: right;
-            font-size: 2em;
+            font-weight: bold;
             color: white;
             text-align: center;
+            margin-left: 140px;
+            cursor: pointer;
+            border-radius: 5px;
+            margin-top: 25px;
         }
-
         #receiptList {
-            border: 1px solid green;
+            border-top: 1px solid black;
+            border-left: 1px solid black;
+            width: 408px;
             clear: both;
         }
-
-        .receipt {
-            background-color: #eee;
-            margin-bottom: 5px;
+        .receipt, .receipt-header {
+            background-color: lightcyan;
+            border-bottom: 1px solid black;
+            width: 100%;
         }
 
+        #receipt-form {
+            position: relative;
+            width: 408px;
+            background: orange;
+            border: 1px solid black;
+            margin-top: -4px;
+            margin-bottom: 15px;
+            display: none;
+        }
+        #receipt-form input {
+            width: 88%;
+            background: inherit;
+            border: 1px solid black;
+            font-style: italic;
+            padding-left: 10px;
+            font-size: 20px;
+            margin-bottom: 10px;
+            margin-left: 22px;
+            height: 30px;
+        }
+        ::-webkit-input-placeholder {
+            color: white;
+            font-style: italic;
+            font-size: 20px;
+        }
+        .button-holder {
+            margin-left: 180px;
+            margin-bottom: 10px;
+            margin-top: 10px;
+        }
+        #cancel-receipt {
+            display: inline-block;
+            background-color: red;
+            border: 1px solid black;
+            width: 50px;
+            color: white;
+            text-align: center;
+            cursor: pointer;
+            border-radius: 5px;
+        }
+        #save-receipt {
+            display: inline-block;
+            background-color: green;
+            border: 1px solid black;
+            width: 50px;
+            color: white;
+            text-align: center;
+            cursor: pointer;
+            border-radius: 5px;
+        }
+        .tagValue {
+            background-color: lightyellow;
+            border: 1px solid black;
+            width: 88px;
+            text-align: center;
+            border-radius: 50px;
+            cursor: pointer;
+            margin-bottom: 5px;
+        }
+        .add-tag {
+            background-color: cornflowerblue;
+            border: 1px solid black;
+            width: 88px;
+            color: white;
+            text-align: center;
+            border-radius: 50px;
+            cursor: pointer;
+        }
+        .tag_input {
+            width: 70px;
+            background: inherit;
+            border: 1px solid black;
+            margin-bottom: 5px;
+        }
     </style>
-    <script>
-        // This is the idiomatic way to ensure that JQuery does not
-        // execute until the page has loaded
-        $(function(){
-            const api = ""; // <- do not need a root api URL if this page is served directly by the API
-
-            $.getJSON(api+"/receipts", function(receipts){
-                for(var i=0; i < receipts.length; i++) {
-                    var receipt = receipts[i];
-                    $(`<div class="receipt">${receipt.merchantName}<div><span class="receiptTag">t1</span></div></div>`)
-                        .appendTo($("#receiptList"));
-                }
-
-            })
-        })
-    </script>
 </head>
 
 <body>
 <DIV id="container">
     <h1>My receipts</h1>
-    <div class="button">+</div>
-    <div id="receiptList">
-    </div>
+    <div class="button" id = "add-receipt" onclick = "toggleAddReceiptDialogue()">+</div>
+    <div id = "addReceiptDialogue"></div>
+    <div id="receiptList"></div>
 </DIV>
 </body>
-
-</html>
