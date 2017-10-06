@@ -3,7 +3,11 @@
 <head>
     <script data-require="jquery@*" data-semver="3.1.1" src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
     <style>
-        #container {border: 1px solid brown;}
+        #container {
+            border: 1px solid brown;
+            height: 100px
+
+        }
         H1 {float: left;}
         .button{
             background-color:#55A;
@@ -13,6 +17,16 @@
             font-size: 2em;
             color: white;
             text-align: center;
+        }
+        .camera{
+            background-color:#55A;
+            border: 1px solid #229;
+            width: 100px;
+            float: right;
+            font-size: 1em;
+            color: white;
+            text-align: center;
+            display: inline-block;
         }
         #receiptList {
             border: 1px solid green;
@@ -37,16 +51,39 @@
             color: powderblue;
             text-align: center;
         }
+        span{
+            border-right: 1px solid black;
+            width: 91px;
+            display: inline-block;
+            text-align: center;
+            padding: 6px;
+            margin: -1px;
+        }
+
+        body {
+            text-align: center;
+        }
+        video {
+            width: 550px;
+            height: 450px;
+            border: 1px solid black;
+        }
+        #vidwrap {
+            margin: 20px 0;
+        }
+        #take-pic, #take-pic-cancel {
+            height: 3em;
+        }
 
     </style>
     <script>
-        //const api = "http://ec2-13-58-78-137.us-east-2.compute.amazonaws.com:8080";
         const api="";
         $(start())
-
         function start() {
             $.getJSON(api + "/receipts", function(receipts){
                 $("#receiptList").empty();
+                $(`<div class="receipt-header"><span>Merchant</span><span>$</span><span>Tags</span></div>`)
+                    .appendTo($("#receiptList"));
                 for(var i = 0; i <= receipts.length - 1; i++) {
                     var current = receipts[i];
                     $(`<div class="receipt">
@@ -67,7 +104,6 @@
                 }
             })
         }
-
         function isNumberKey(evt)
         {
             var charCode = (evt.which) ? evt.which : evt.keyCode;
@@ -76,7 +112,6 @@
                 return false;
             return true;
         }
-
         $(function(){
             $("#add-receipt").click(function() {
                 $("#AddBox").css("visibility","visible");
@@ -85,10 +120,8 @@
                 $("#AddBox").css("visibility","hidden");
             });
             $('#save-receipt').on('click', function () {
-
                 var merchant = $("#merchant").val();
                 var amount = $("#amount").val();
-
                 $.ajax({
                     method: "POST",
                     url: api + "/receipts",
@@ -98,18 +131,22 @@
                     $("#AddBox").css("visibility","hidden");
                     $("#merchant").val("");
                     $("#amount").val("");
-
                     var temp = "<div class='receipt' id='" + id + "'>";
                     temp += "<div class='merchant'>" + merchant + "</div>";
                     temp += "<div class='amount'>" + amount + "</div>";
-                    temp += "<span class='tags'><button class='add-tag' name='" + id + "' onclick='addTag(this)'>Add</button></span>";
+                    temp += "<div class='tags'><button class='add-tag' name='" + id + "' onclick='addTag(this)'>Add</button></div>";
                     temp += "</div>";
-
                     $("#receiptList").append(temp);
-
                 })
             });
-
+            $("#start-camera").click(function(){
+                $("#AddPhoto").css("visibility","visible");
+                $("#vidwrap").css("visibility","visible");
+            });
+            $("#take-pic-cancel").click(function(){
+                $("#AddPhoto").css("visibility","hidden");
+                $("#vidwrap").css("visibility","hidden");
+            });
         });
         function addTag(input) {
             var text = document.createElement('input')
@@ -130,20 +167,17 @@
                             button.text = text.value
                             button.name = input.name
                             button.className = "tagValue"
-
                             document.getElementById(input.name).appendChild(button)
                             $("input").remove()
-
                         },
                     });
                 }
             });
             document.getElementById(input.name).appendChild(text)
         }
-
         $(document).on('click','.tagValue',function(){
-           //alert($(this).text());
-           //alert($(this).attr('name'));
+            //alert($(this).text());
+            //alert($(this).attr('name'));
             $.ajax({
                 type: 'PUT',
                 url: '/tags/'+$(this).text(),
@@ -152,15 +186,67 @@
                 dataType: 'json',
             });
             $(this).remove();
-
         });
 
+        let imageCapture;
+        let track;
+        function attachMediaStream(mediaStream) {
+            $('video')[0].srcObject = mediaStream;
+            // Saving the track allows us to capture a photo
+            track = mediaStream.getVideoTracks()[0];
+            imageCapture = new ImageCapture(track);
+        }
+        function startVideo() {
+            navigator.mediaDevices.getUserMedia({video: {facingMode: {exact: "environment"}}})
+                .then(attachMediaStream)
+                .catch(error => {
+                navigator.mediaDevices.getUserMedia({video: true})
+                .then(attachMediaStream)
+                .catch(error => {
+                console.log('you are fooked');
+        })
+        })
+        }
+        function takeSnapshot() {
+            // create a CANVAS element that is same size as the image
+            imageCapture.grabFrame()
+                .then(img => {
+                const canvas = document.createElement('canvas');
+            canvas.width = img.width;
+            canvas.height = img.height;
+            canvas.getContext('2d').drawImage(img, 0, 0);
+            const base64EncodedImageData = canvas.toDataURL('image/png').split(',')[1];
+            $.ajax({
+                url: "/images",
+                type: "POST",
+                data: base64EncodedImageData,
+                contentType: "text/plain",
+                success: function(data) {
+                    console.log(data);
+                    $("#merchant:text").val(data.merchantName);
+                    $("#amount:text").val(data.amount);
+                    $("#AddBox").css("visibility","visible");
+                },
+            })
+                .always(() => console.log('request complete'));
+            // For debugging, you can uncomment this to see the frame that was captured
+            // $('BODY').append(canvas);
+        });
+        }
+        $(function () {
+            $('#start-camera').on('click', startVideo);
+            $('video').on('play', () => $('#take-pic').prop('disabled', false));
+            $('#take-pic').on('click', takeSnapshot);
+        });
     </script>
 
 <body>
 <DIV id="container">
     <h1>My receipts</h1>
+
     <button id="add-receipt" class="button">+</button>
+    <button id="start-camera" class="camera" >Add photo</button>
+
     <div id="AddBox" style="visibility: hidden">
         <input type="text" id="merchant" placeholder="Merchant">
         <input onkeypress="return isNumberKey(event)" type="text" id="amount" placeholder="Amount">
@@ -170,6 +256,17 @@
 
     <div id = "addReceiptDialogue"></div>
     <div id="receiptList"></div>
+
+
+    <div id="AddPhoto" style="visibility: hidden">
+        <button id="take-pic-cancel">cancel</button>
+        <button id="take-pic" disabled="true">Snap!</button>
+    </div>
+    <div id="vidwrap" style="visibility: hidden">
+        <video autoplay></video>
+    </div>
 </DIV>
-</body>
+
+
+
 
