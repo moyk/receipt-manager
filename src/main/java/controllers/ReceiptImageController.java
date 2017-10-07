@@ -21,8 +21,9 @@ import java.math.BigDecimal;
 import java.nio.charset.StandardCharsets;
 import java.util.Base64;
 import java.util.Collections;
-import java.util.List;
-
+import java.util.*;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import static java.util.stream.Collectors.toList;
 
 @Path("/images")
@@ -133,9 +134,9 @@ public class ReceiptImageController {
             amount = BigDecimal.valueOf(amountList.get(0));
             //TextAnnotation fullTextAnnotation = res.getFullTextAnnotation();
 
-            String thumbnail = getThumbnail(originImg, textAnnotations);
+            String thumbnail = getThumbnail(originImg, entityList);
             imgdao.insert(thumbnail);
-            return new ReceiptSuggestionResponse(merchantName, amount);
+            return new ReceiptSuggestionResponse(merchantName, amount, thumbnail);
         }
     }
 

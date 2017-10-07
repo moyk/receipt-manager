@@ -31,6 +31,13 @@
         #receiptList {
             border: 1px solid green;
             clear: both;
+            width: 500px;
+        }
+
+        .receipt-header{
+            clear: both;
+            width: 500px;
+
         }
         .receipt {
             background-color: #eee;
@@ -74,6 +81,17 @@
         #take-pic, #take-pic-cancel {
             height: 3em;
         }
+        #thumbnailList {
+            position: absolute;
+            top: 150px;
+            right: 10px;
+            width: 500px;
+        }
+        .thumbnail{
+            position: relative;
+            right: 20px;
+            width: 25%;
+        }
 
     </style>
     <script>
@@ -89,11 +107,15 @@
                     $(`<div class="receipt">
                             <span class = "merchant">${current.merchantName}</span>
                             <span class = "amount">${current.value}</span>
-                            <span class="tags" id = ${current.id}>
+                            <div class="tags" id = ${current.id}>
                                 <button class = "add-tag" name = ${current.id}  onclick="addTag(this)">Add</button>
-                            </span>
+                            </div>
                         </div>`
                     ).appendTo($("#receiptList"));
+
+
+
+
                     current.tags.forEach(function(tag) {
                         var a = document.createElement('a');
                         a.text = tag
@@ -103,7 +125,17 @@
                     });
                 }
             })
-        }
+
+            $.getJSON(api + "/images", function(images) {
+                $("#thumbnailList").empty();
+                for (var i = 0; i <= images.length - 1; i++) {
+                    var thumb = images[i];
+                    thumbnail_img = "data:image/png;base64,".concat(thumb.img);
+                    $(`<div class="thumbnail"><img src=${thumbnail_img}></div>`)
+                        .appendTo($("#thumbnailList"));
+                }
+            })
+            }
         function isNumberKey(evt)
         {
             var charCode = (evt.which) ? evt.which : evt.keyCode;
@@ -223,12 +255,14 @@
                 type: "POST",
                 data: base64EncodedImageData,
                 contentType: "text/plain",
-                success: function(data) {
-                    console.log(data);
-                    $("#merchant:text").val(data.merchantName);
-                    $("#amount:text").val(data.amount);
+                success: function() {},
+            }).then(response => {
+                var obj = JSON.parse(JSON.stringify(response));
+                    $("#merchant:text").val(obj.merchantName);
+                    $("#amount:text").val(obj.amount);
                     $("#AddBox").css("visibility","visible");
-                },
+                    thumbnail_img = "data:image/png;base64,".concat(obj.thumbnail);
+                    $(`<div class="thumbnail"><img src=${thumbnail_img}></div>`).appendTo($("#thumbnailList"));
             })
                 .always(() => console.log('request complete'));
             // For debugging, you can uncomment this to see the frame that was captured
@@ -258,6 +292,7 @@
 
     <div id = "addReceiptDialogue"></div>
     <div id="receiptList"></div>
+    <div id="thumbnailList"></div>
 
 
     <div id="AddPhoto" style="visibility: hidden">
