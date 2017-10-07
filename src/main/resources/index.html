@@ -87,11 +87,11 @@
                 for(var i = 0; i <= receipts.length - 1; i++) {
                     var current = receipts[i];
                     $(`<div class="receipt">
-                            <div class = "merchant">${current.merchantName}</div>
-                            <div class = "amount">${current.value}</div>
-                            <div class="tags" id = ${current.id}>
+                            <span class = "merchant">${current.merchantName}</span>
+                            <span class = "amount">${current.value}</span>
+                            <span class="tags" id = ${current.id}>
                                 <button class = "add-tag" name = ${current.id}  onclick="addTag(this)">Add</button>
-                            </div>
+                            </span>
                         </div>`
                     ).appendTo($("#receiptList"));
                     current.tags.forEach(function(tag) {
@@ -112,6 +112,8 @@
                 return false;
             return true;
         }
+
+
         $(function(){
             $("#add-receipt").click(function() {
                 $("#AddBox").css("visibility","visible");
@@ -132,9 +134,9 @@
                     $("#merchant").val("");
                     $("#amount").val("");
                     var temp = "<div class='receipt' id='" + id + "'>";
-                    temp += "<div class='merchant'>" + merchant + "</div>";
-                    temp += "<div class='amount'>" + amount + "</div>";
-                    temp += "<div class='tags'><button class='add-tag' name='" + id + "' onclick='addTag(this)'>Add</button></div>";
+                    temp += "<span class='merchant'>" + merchant + "</span>";
+                    temp += "<span class='amount'>" + amount + "</span>";
+                    temp += "<span class='tags'><button class='add-tag' name='" + id + "' onclick='addTag(this)'>Add</button></span>";
                     temp += "</div>";
                     $("#receiptList").append(temp);
                 })
@@ -148,11 +150,11 @@
                 $("#vidwrap").css("visibility","hidden");
             });
         });
-        function addTag(input) {
+        function addTag(b) {
             var text = document.createElement('input')
             text.type = "text"
             text.placeholder = "Add Tag"
-            text.name = input.name
+            text.name = b.name
             text.className = "tag_input"
             text.addEventListener('keypress', function(event){
                 if (event.keyCode == 13) {
@@ -165,15 +167,15 @@
                         success: function(){
                             var button = document.createElement('a');
                             button.text = text.value
-                            button.name = input.name
+                            button.name = b.name
                             button.className = "tagValue"
-                            document.getElementById(input.name).appendChild(button)
-                            $("input").remove()
+                            document.getElementById(b.name).appendChild(button)
+                            text.remove()
                         },
                     });
                 }
             });
-            document.getElementById(input.name).appendChild(text)
+            document.getElementById(b.name).appendChild(text)
         }
         $(document).on('click','.tagValue',function(){
             //alert($(this).text());
