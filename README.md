@@ -1,11 +1,10 @@
 [![CircleCI](https://circleci.com/gh/amfleming/skeleton.svg?style=svg)](https://circleci.com/gh/amfleming/skeleton)
 
 
-skeleton
+Receipt Manager
 ============
-A super simple foundation for building a scalable RESTful HTTP servers
+This an app that scans receipts, uses OCR to extract cost info, and organizes them. The app will:
 
-To build and run with docker:
-1. Run `./gradlew distTar` _this tells gradle to make a .tar file containing the java application code and all dependencies_
-2. Run `docker build -t myapp .` _this runs the Dockerfile, and builds an image tagged with `myapp`.  See all images with `docker images`_
-3. Run `docker run -p 80:8080 myapp` _this runs the `myapp` image, routing port 80 on **Your Machine** to port 8080 in **the container**_
+Support user account creation, login + logout
+Use a restful API between client + server
+Use Google Vison API for OCR
